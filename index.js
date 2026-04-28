@@ -93,7 +93,6 @@ worker.stderr.on('data', (data) => {
 
 worker.on('data', (data) => {
   console.log(`[worker:ipc] ${data}\n`)
-  if (data === 'worker received: hello from cli main') console.log('CLI ready. Press Ctrl+C to stop.')
 })
 
 worker.on('exit', (code) => {
@@ -102,7 +101,21 @@ worker.on('exit', (code) => {
 
 worker.write(Buffer.from(message))
 
-global.Bare.on('SIGINT', () => {
-  worker.destroy()
-  global.Bare.exit(0)
-})
+let tearingDown = false
+async function teardown(code = 0) {
+  if (tearingDown) return
+  tearingDown = true
+  try {
+    worker.destroy()
+  } catch {}
+  try {
+    await pear?.close()
+  } catch {}
+  global.Bare.exit(code)
+}
+
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGQUIT']) {
+  global.Bare.on(sig, () => teardown(0))
+}
+
+console.log('CLI ready. Press Ctrl+C to stop.')
