@@ -26,12 +26,6 @@ Use custom storage:
 npm start -- --storage ./storageDir
 ```
 
-## Updater Flow
-
-Set `upgrade` in `package.json` to your release line pear link.
-
-When an update is downloaded, it will be applied directly. restart to launch the updated executable
-
 ## Build
 
 Build a standalone for a given arch (output at out/<arch>).
@@ -39,6 +33,9 @@ Build a standalone for a given arch (output at out/<arch>).
 ```sh
 npm run build:<arch>
 ```
+
+## Updater Flow
+Set the `upgrade` field in the package.json to your distribution drive link and follow the [default update flow](https://github.com/holepunchto/hello-pear-electron#4-build-deployment-directory-)
 
 ## Project Structure
 
