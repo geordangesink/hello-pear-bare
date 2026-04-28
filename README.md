@@ -35,6 +35,7 @@ npm run build:<arch>
 ```
 
 ## Updater Flow
+
 Set the `upgrade` field in the package.json to your distribution drive link and follow the [default update flow](https://github.com/holepunchto/hello-pear-electron#4-build-deployment-directory-)
 
 ## Project Structure
