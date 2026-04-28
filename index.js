@@ -15,7 +15,7 @@ const cmd = command(
   flag('--no-updates', 'disable OTA updates for this run'),
   flag('--message <text>', 'message sent to worker IPC stream')
 )
-console.log('whaaaaaaaaaaaaaaaaat')
+
 cmd.parse(global.Bare.argv.slice(2))
 
 const updates = cmd.flags.updates
