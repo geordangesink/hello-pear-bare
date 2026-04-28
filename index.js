@@ -15,7 +15,7 @@ const cmd = command(
   flag('--no-updates', 'disable OTA updates for this run'),
   flag('--message <text>', 'message sent to worker IPC stream')
 )
-
+console.log('whaaaaaaaaaaaaaaaaat')
 cmd.parse(global.Bare.argv.slice(2))
 
 const updates = cmd.flags.updates
@@ -93,6 +93,7 @@ worker.stderr.on('data', (data) => {
 
 worker.on('data', (data) => {
   console.log(`[worker:ipc] ${data}\n`)
+  if (data === 'worker received: hello from cli main') console.log('CLI ready. Press Ctrl+C to stop.')
 })
 
 worker.on('exit', (code) => {
@@ -105,5 +106,3 @@ global.Bare.on('SIGINT', () => {
   worker.destroy()
   global.Bare.exit(0)
 })
-
-console.log('CLI ready. Press Ctrl+C to stop.')
