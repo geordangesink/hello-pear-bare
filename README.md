@@ -14,39 +14,29 @@ npm install
 npm start
 ```
 
-Disable updates for a run:
+Disable updates:
 
 ```sh
-npm run start:no-updates
+npm start -- --no-updates
 ```
 
 Use custom storage:
 
 ```sh
-npm run start:custom-storage
+npm start -- --storage ./storageDir
+```
+
+## Build
+
+Build a standalone for a given arch (output at out/<arch>).
+
+```sh
+npm run build:<arch>
 ```
 
 ## Updater Flow
 
-Set `upgrade` in `package.json` to your release line pear link.
-
-When an update is downloaded, apply it with:
-
-```sh
-bare index.js --apply-update
-```
-
-## Build Standalone
-
-```sh
-npm run build:standalone
-```
-
-Build all configured hosts:
-
-```sh
-npm run build:all
-```
+Set the `upgrade` field in the package.json to your distribution drive link and follow the [default update flow](https://github.com/holepunchto/hello-pear-electron#4-build-deployment-directory-)
 
 ## Project Structure
 
