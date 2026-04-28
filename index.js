@@ -31,6 +31,7 @@ console.log(`${appName} v${pkg.version}`)
 console.log(`Updates: ${updates === false ? 'disabled' : 'enabled'}`)
 
 function getRunningAppPath() {
+  if (isDev) return null
   if (global.Bare && Array.isArray(Bare.argv) && typeof Bare.argv[0] === 'string') {
     return path.resolve(Bare.argv[0])
   }
