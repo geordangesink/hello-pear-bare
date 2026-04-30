@@ -1,10 +1,10 @@
 {
   "name": "hello-pear-cli",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "Pear Runtime CLI boilerplate using Bare with OTA updater support.",
   "private": true,
   "main": "index.js",
-  "upgrade": "pear://okug655xhy7g43cb1qyqhcdkgy7gtj9dowipogxx77mmirue4doo",
+  "upgrade": "pear://4qxy4f4fdmg1pw3w96cm8sj6h4u9xmbn5hwpm8kg3acnwbr47rdy",
   "scripts": {
     "format": "prettier . --write",
     "test": "brittle-bare test/index.js",
@@ -14,7 +14,8 @@
     "build:darwin-x64": "bare-build --config ./bare-build.config.cjs --host darwin-x64 --out ./out/darwin-x64 index.js",
     "build:linux-arm64": "bare-build --config ./bare-build.config.cjs --host linux-arm64 --out ./out/linux-arm64 index.js",
     "build:linux-x64": "bare-build --config ./bare-build.config.cjs --host linux-x64 --out ./out/linus-x64 index.js",
-    "build:win32-x64": "bare-build --config ./bare-build.config.cjs --host win32-x64 --out ./out/win32-x64 index.js"
+    "build:win32-x64": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Win32X64.ps1",
+    "build:win32-x64:msix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Win32X64.ps1 -Msix"
   },
   "dependencies": {
     "bare-module-resolve": "file:../bare-module-resolve/bare-module-resolve-1.12.1.tgz",
@@ -24,7 +25,8 @@
     "corestore": "^7.9.2",
     "hyperswarm": "^4.17.0",
     "paparam": "^1.10.1",
-    "pear-runtime": "^1.1.1"
+    "pear-runtime": "^1.1.1",
+    "which-runtime": "^1.3.2"
   },
   "devDependencies": {
     "bare-build": "^0.5.3",

@@ -3,6 +3,7 @@ const storageAPI = require('bare-storage')
 const pkg = require('./package.json')
 const os = require('bare-os')
 const path = require('bare-path')
+const { isWindows } = require('which-runtime')
 const Corestore = require('corestore')
 const Hyperswarm = require('hyperswarm')
 const Updater = require('pear-runtime-updater')
@@ -50,7 +51,7 @@ function getPear({ storage, updates, store, swarm }) {
     updates,
     version: pkg.version,
     upgrade: pkg.upgrade,
-    name: appName,
+    name: isWindows ? appName + '.msix' : appName,
     store,
     swarm
   })
