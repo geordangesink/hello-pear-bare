@@ -42,6 +42,30 @@ Set the `upgrade` field in the package.json to your distribution drive link and 
 
 ## Project Structure
 
-- `index.js`: CLI entrypoint (Bare runtime)
-- `lib/pear-runtime.js`: pear-runtime setup + updater/swarm wiring
-- `workers/main.js`: example embedded bare worker via `pear.run(...)`
+- `bin.js`: CLI entrypoint — your app logic lives here
+- `lib/pear-cli.js`: pear-runtime setup, updater/swarm wiring, worker logging and teardown (the boilerplate — you usually don't need to touch this)
+- `workers/main.js`: example embedded bare worker via `run(...)`
+
+### Writing your CLI
+
+`bin.js` is the happy path. `createPearCli(pkg, opts)` handles storage, the OTA
+updater, swarm replication, signal handling and teardown for you. You describe
+your own flags and spawn your own workers:
+
+```js
+const createPearCli = require('./lib/pear-cli')
+const pkg = require('./package.json')
+
+const cli = createPearCli(pkg, {
+  flags: [['--message <text>', 'message sent to worker IPC stream']]
+})
+
+cli.start(({ run, flags }) => {
+  const worker = run('./workers/main.js')
+  worker.write(Buffer.from(flags.message || 'hello from cli main'))
+})
+```
+
+`start(handler)` calls your handler with `{ run, flags, pear, swarm, store, appName, dir }`.
+`run(script)` spawns a worker with default stdout/stderr/IPC/exit logging
+already attached. The `--storage` and `--no-updates` flags are provided for free.
