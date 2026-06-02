@@ -1,71 +1,128 @@
 # hello-pear-bare
 
-Pear Runtime hello world boilerplate for a CLI project using [**Bare**](https://github.com/holepunchto/bare) with OTA updates and standalone binary builds via [`bare-build`](https://github.com/holepunchto/bare-build).
+> Pear Hello World for Bare CLI with `pear-runtime`
 
-## Install
+End-to-end boilerplate for embedding [pear-runtime](https://github.com/holepunchto/pear-runtime) into a [Bare](https://github.com/holepunchto/bare) CLI with peer-to-peer OTA update support and standalone builds.
+
+- Peer-to-Peer Over-the-Air updates
+- Bare worker process via `PearRuntime.run(...)`
+- Cross-platform standalone distributables via [`bare-build`](https://github.com/holepunchto/bare-build)
+
+## Table of Contents
+
+- OS Support
+- Requirements
+- Development
+  - Install
+  - Create an upgrade link
+  - Start
+- Architecture
+  - Updates
+  - Workers
+- Peer-to-Peer Deployments
+- Scripts
+- Project Structure
+- Troubleshooting
+
+## OS Support
+
+- **macOS** — arm64, x64
+- **Linux** — arm64, x64
+- **Windows** — arm64, x64
+
+## Requirements
+
+- `npm` via [Node.js](https://nodejs.org/)
+- [pear](https://docs.pears.com/) - `npx pear`
+
+## Development
+
+### Install
 
 ```sh
 npm install
 ```
 
-## Development
+### Create an upgrade link
+
+This template expects `package.json` to contain a valid `pear://` link in the `upgrade` field. If it still contains the placeholder `pear://<YOUR_KEY_HERE>`, startup will fail with `INVALID_URL`.
+
+Create a link with [`pear touch`](https://docs.pears.com/reference/cli.html#pear-touch-flags-channel):
+
+```sh
+pear touch
+```
+
+Copy the generated `pear://...` link into the `upgrade` field in `package.json`.
+
+### Start
+
+Start app in development mode:
 
 ```sh
 npm start
 ```
 
-Disable updates:
+By default this repo starts with `--no-updates` in development to avoid local dev binaries being swapped while you iterate.
+
+Enable updates for local flow testing:
+
+```sh
+npm start -- --updates
+```
+
+Send a custom worker message:
+
+```sh
+npm start -- --message "hello from dev"
+```
+
+## Architecture
+
+### Updates
+
+Updates are handled through `pear-runtime` and the configured `upgrade` link in `package.json`.
+
+Per-run disable updates:
 
 ```sh
 npm start -- --no-updates
 ```
 
-Use custom storage:
+### Workers
 
-```sh
-npm start -- --storage ./storageDir
-```
+The main CLI runs a worker with `PearRuntime.run('./workers/main.js')` and communicates over IPC.
 
-## Build
+## Peer-to-Peer Deployments
 
-Build a standalone for a given arch (output at `out/<arch>`).
+Set the `upgrade` field in `package.json` to your distribution drive link, then follow the default flow from section 4 onward:
 
-```sh
-npm run build:<arch>
-```
+[hello-pear-electron: 4. Build Deployment Directory and onward](https://github.com/holepunchto/hello-pear-electron#4-build-deployment-directory-)
 
-Pass `/out/<arch>` dirs to the [`pear-build`](https://github.com/holepunchto/pear-build) command to create a Deployment Folder for the updater to use.
+## Scripts
 
-## Updater Flow
-
-Set the `upgrade` field in the package.json to your distribution drive link and follow the [default update flow](https://github.com/holepunchto/hello-pear-electron#4-build-deployment-directory-)
+- `npm start` - run the Bare CLI in dev mode (`bare bin.js --no-updates`)
+- `npm test` - run `brittle-bare` tests
+- `npm run lint` - run prettier check and lunte
+- `npm run format` - format repository with prettier
+- `npm run make` - auto-detect host OS/arch and run matching build target
+- `npm run make:darwin-arm64` - build standalone to `out/darwin-arm64`
+- `npm run make:darwin-x64` - build standalone to `out/darwin-x64`
+- `npm run make:linux-arm64` - build standalone to `out/linux-arm64`
+- `npm run make:linux-x64` - build standalone to `out/linux-x64`
+- `npm run make:win32-arm64` - build standalone to `out/win32-arm64`
+- `npm run make:win32-x64` - build standalone to `out/win32-x64`
 
 ## Project Structure
 
-- `bin.js`: CLI entrypoint — your app logic lives here
-- `lib/pear-cli.js`: pear-runtime setup, updater/swarm wiring, worker logging and teardown (the boilerplate — you usually don't need to touch this)
-- `workers/main.js`: example embedded bare worker via `run(...)`
+- `bin.js` - CLI entrypoint and runtime wiring
+- `workers/main.js` - Bare worker example
+- `scripts/make.js` - platform/arch build target selector
+- `test/index.js` - brittle-bare tests
 
-### Writing your CLI
+## Troubleshooting
 
-`bin.js` is the happy path. `createPearCli(pkg, opts)` handles storage, the OTA
-updater, swarm replication, signal handling and teardown for you. You describe
-your own flags and spawn your own workers:
-
-```js
-const createPearCli = require('./lib/pear-cli')
-const pkg = require('./package.json')
-
-const cli = createPearCli(pkg, {
-  flags: [['--message <text>', 'message sent to worker IPC stream']]
-})
-
-cli.start(({ run, flags }) => {
-  const worker = run('./workers/main.js')
-  worker.write(Buffer.from(flags.message || 'hello from cli main'))
-})
-```
-
-`start(handler)` calls your handler with `{ run, flags, pear, swarm, store, appName, dir }`.
-`run(script)` spawns a worker with default stdout/stderr/IPC/exit logging
-already attached. The `--storage` and `--no-updates` flags are provided for free.
+- `INVALID_URL: Invalid URL 'pear://<YOUR_KEY_HERE>'` means the placeholder `upgrade` link in `package.json` has not been replaced. Run `pear touch`, then put the generated `pear://...` link in `package.json`.
+- If updates do not trigger, verify `package.json` contains a valid `upgrade` Pear link and that peers are seeding the target drive.
+- If `npm run make` fails on unsupported hosts, run a specific `make:<platform>-<arch>` script or build on a supported host.
+- This template does not implement app-level data persistence; it is a minimal CLI + updater example.
