@@ -7,6 +7,10 @@ require('./viewport')
 require('./list')
 require('./style')
 require('./mouse')
+require('./help')
+require('./progress')
+require('./paginator')
+require('./textarea')
 
 test('works', (t) => {
   t.pass()
