@@ -11,6 +11,9 @@ require('./help')
 require('./progress')
 require('./paginator')
 require('./textarea')
+require('./table')
+require('./stopwatch')
+require('./timer')
 
 test('works', (t) => {
   t.pass()
