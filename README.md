@@ -75,7 +75,9 @@ npm start -- --updates
 
 ### Updates
 
-Updates are handled through `pear-runtime` and the configured `upgrade` link in `package.json`.
+Updates are managed by the `App` class in `index.js`, which wraps `pear-runtime` as a ready resource and emits update events for `bin.mjs` to log.
+
+It uses the configured `upgrade` link in `package.json`.
 
 Per-run disable updates:
 
@@ -116,6 +118,7 @@ npx pear-install pear://<key>
 ## Project Structure
 
 - `bin.mjs` - entrypoint and runtime wiring
+- `index.js` - update resource used by the entrypoint
 - `scripts/make.js` - platform/arch build target selector
 - `test/index.js` - brittle-bare tests
 
