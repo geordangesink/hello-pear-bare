@@ -11,7 +11,7 @@ End-to-end boilerplate for embedding [pear-runtime] into a Standalone [Bare] Pro
 ## Variants
 
 - [`main`](https://github.com/holepunchto/hello-pear-bare/tree/main): runs `pear-runtime` in a Bare worker thread.
-- [`single-thread`](https://github.com/holepunchto/hello-pear-bare/tree/variants/single-thread) (current): runs `pear-runtime` in the main thread.
+- (current) [`single-thread`](https://github.com/holepunchto/hello-pear-bare/tree/variant/single-thread): runs `pear-runtime` in the main thread.
 
 ## Table of Contents
 
