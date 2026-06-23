@@ -8,6 +8,11 @@ End-to-end boilerplate for embedding [pear-runtime] into a Standalone [Bare] Pro
 - Peer-to-Peer Over-the-Air updates with [`pear-runtime`][pear-runtime] module
 - Cross-platform standalone distributables via [`bare-build`][bare-build]
 
+## Variants
+
+- [`main`](https://github.com/holepunchto/hello-pear-bare/tree/main): runs `pear-runtime` in a Bare worker thread.
+- [`single-thread`](https://github.com/holepunchto/hello-pear-bare/tree/variants/single-thread) (current): runs `pear-runtime` in the main thread.
+
 ## Table of Contents
 
 - [OS Support](#os-support)
