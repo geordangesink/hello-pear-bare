@@ -1,0 +1,93 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.host }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            host: linux-x64
+          - os: ubuntu-24.04-arm
+            host: linux-arm64
+          - os: macos-latest
+            host: darwin-arm64
+          - os: macos-15-intel
+            host: darwin-x64
+          - os: windows-latest
+            host: win32-x64
+          - os: windows-11-arm
+            host: win32-arm64
+    steps:
+      - name: Setup repo
+        uses: holepunchto/actions/.github/steps/setup-repo@v1
+
+      - name: Install w/ dev deps
+        run: npm ci
+
+      - name: Build
+        run: npm run make:${{ matrix.host }}
+
+      - name: Test executable
+        if: runner.os != 'Windows'
+        shell: bash
+        run: ./out/${{ matrix.host }}/hello-pear-bare --help
+
+      - name: Test executable
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '& "./out/${{ matrix.host }}/hello-pear-bare.exe" --help'
+
+      - name: Package
+        if: runner.os != 'Windows'
+        shell: bash
+        run: tar -C out/${{ matrix.host }} -czf hello-pear-bare-${{ matrix.host }}.tar.gz .
+
+      - name: Package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path "out/${{ matrix.host }}/*" -DestinationPath "hello-pear-bare-${{ matrix.host }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hello-pear-bare-${{ matrix.host }}
+          path: hello-pear-bare-${{ matrix.host }}.*
+          if-no-files-found: error
+
+  release:
+    name: Release
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/* --clobber
+          else
+            gh release create "$TAG" release/* --verify-tag --generate-notes
+          fi
