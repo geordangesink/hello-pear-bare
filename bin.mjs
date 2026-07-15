@@ -13,7 +13,7 @@ const isDev = path.basename(Bare.argv[0]) === 'bare'
 const cmd = command(
   appName,
   summary(pkg.description),
-  flag('--storage <dir>', 'custom storage directory').hide(),
+  flag('--storage <dir>', 'custom storage directory'),
   flag('--no-updates', 'disable OTA updates for this run')
 )
 
