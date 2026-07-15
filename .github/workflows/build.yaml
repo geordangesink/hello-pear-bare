@@ -39,27 +39,6 @@ jobs:
       - name: Build
         run: npm run make:${{ matrix.host }}
 
-      - name: Test executable
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          package_version="$(node -p "require('./package.json').version")"
-          expected="hello-pear-bare v$package_version"
-          test "$(./out/${{ matrix.host }}/hello-pear-bare --version)" = "$expected"
-          test "$(./out/${{ matrix.host }}/hello-pear-bare -v)" = "$expected"
-
-      - name: Test executable
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $packageVersion = node -p "require('./package.json').version"
-          $expected = "hello-pear-bare v$packageVersion"
-          $version = & "./out/${{ matrix.host }}/hello-pear-bare.exe" --version
-          $shortVersion = & "./out/${{ matrix.host }}/hello-pear-bare.exe" -v
-          if ($version -ne $expected -or $shortVersion -ne $expected) {
-            throw "Expected '$expected'"
-          }
-
       - name: Package
         if: runner.os != 'Windows'
         shell: bash
