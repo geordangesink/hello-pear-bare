@@ -2,11 +2,23 @@ name: Build
 
 on:
   workflow_dispatch:
+    inputs:
+      channel:
+        description: Update channel to build
+        type: choice
+        options:
+          - production
+          - stage
+          - dev
+        default: production
   push:
     tags: ['v*']
 
 permissions:
   contents: read
+
+env:
+  CHANNEL: ${{ inputs.channel || 'production' }}
 
 jobs:
   build:

@@ -22,7 +22,7 @@ This boilerplate uses the companion [`hello-pear-worker`][hello-pear-worker] as 
 - [Requirements](#requirements)
 - [Development](#development)
   - [Install Dependencies](#install-dependencies)
-  - [Create an upgrade link](#create-an-upgrade-link)
+  - [Create upgrade links](#create-upgrade-links)
   - [Start](#start)
 - [Architecture](#architecture)
   - [Updates](#updates)
@@ -52,17 +52,25 @@ This boilerplate uses the companion [`hello-pear-worker`][hello-pear-worker] as 
 npm install
 ```
 
-### Create an upgrade link
+### Create upgrade links
 
-This template expects `package.json` to contain a valid `pear://` link in the `upgrade` field. If it still contains the placeholder `pear://<YOUR_KEY_HERE>`, startup will fail with `INVALID_URL`.
+This template keeps separate update links for production, staging and development:
 
-Create a link with [`pear touch`](https://docs.pears.com/reference/cli.html#pear-touch-flags-channel):
+```json
+"upgrade": {
+  "production": "pear://<YOUR_PRODUCTION_KEY_HERE>",
+  "stage": "pear://<YOUR_STAGE_KEY_HERE>",
+  "dev": "pear://<YOUR_DEV_KEY_HERE>"
+}
+```
+
+Create one link per channel with [`pear touch`](https://docs.pears.com/reference/cli.html#pear-touch-flags-channel):
 
 ```sh
 pear touch
 ```
 
-Copy the generated `pear://...` link into the `upgrade` field in `package.json`.
+Copy each generated `pear://...` link into its matching `upgrade` field in `package.json`.
 
 ### Start
 
@@ -80,13 +88,15 @@ Enable updates for local flow testing:
 npm start -- --updates
 ```
 
+Development uses the `upgrade.dev` link.
+
 ## Architecture
 
 ### Updates
 
-Updates are managed by the `App` class in `app.js`, which wraps the updater lifecycle as a ready resource and emits update events for `bin.mjs` to log.
+Updates are managed by the `App` class in `app.js`, which wraps the updater lifecycle as a ready resource and emits update events for `main.mjs` to log.
 
-The worker uses `pear-runtime` and the configured `upgrade` link in `package.json`.
+The selected build channel resolves to `upgrade.production`, `upgrade.stage` or `upgrade.dev` in `package.json`. Production is the default build channel.
 
 Per-run disable updates:
 
@@ -102,7 +112,7 @@ The main CLI starts `workers/main.js` as a Bare sidecar and communicates with it
 
 Use the [`pear`][pear-docs] CLI to deploy applications.
 
-Set the `upgrade` field in `package.json` to your distribution drive link, then follow the default flow from section 4 onward:
+Set the matching channel in `package.json#upgrade` to its distribution drive link, then follow the default flow from section 4 onward:
 
 [hello-pear-electron: 4. Build Deployment Directory and onward](https://github.com/holepunchto/hello-pear-electron#4-build-deployment-directory-)
 
@@ -120,26 +130,32 @@ npx pear-install pear://<key>
 - `npm test` - run `brittle-bare` tests
 - `npm run lint` - run prettier check and lunte
 - `npm run format` - format repository with prettier
-- `npm run make` - auto-detect host OS/arch and run matching build target
-- `npm run make:darwin-arm64` - build standalone to `out/darwin-arm64`
-- `npm run make:darwin-x64` - build standalone to `out/darwin-x64`
-- `npm run make:linux-arm64` - build standalone to `out/linux-arm64`
-- `npm run make:linux-x64` - build standalone to `out/linux-x64`
-- `npm run make:win32-arm64` - build standalone to `out/win32-arm64`
-- `npm run make:win32-x64` - build standalone to `out/win32-x64`
+- `npm run make` - build the production channel for the current OS/arch
+- `npm run make:stage` - build the staging channel for the current OS/arch
+- `npm run make:dev` - build the development channel for the current OS/arch
+- `npm run make:darwin-arm64` - build the production channel to `out/darwin-arm64`
+- `npm run make:darwin-x64` - build the production channel to `out/darwin-x64`
+- `npm run make:linux-arm64` - build the production channel to `out/linux-arm64`
+- `npm run make:linux-x64` - build the production channel to `out/linux-x64`
+- `npm run make:win32-arm64` - build the production channel to `out/win32-arm64`
+- `npm run make:win32-x64` - build the production channel to `out/win32-x64`
+
+The manual GitHub Build workflow accepts a channel. Tag builds always use production.
 
 ## Project Structure
 
-- `bin.mjs` - CLI entrypoint and runtime wiring
+- `bin.mjs` - development entrypoint
+- `main.mjs` - CLI and runtime wiring shared by all channels
 - `app.js` - update resource used by the entrypoint
 - `workers/main.js` - Bare worker example
-- `scripts/make.js` - platform/arch build target selector
+- `targets/main.*.mjs` - channel-specific build entrypoints
+- `scripts/make.js` - channel and platform/arch build selector
 - `test/index.js` - brittle-bare tests
 
 ## Troubleshooting
 
-- `INVALID_URL: Invalid URL 'pear://<YOUR_KEY_HERE>'` means the placeholder `upgrade` link in `package.json` has not been replaced. Run `pear touch`, then put the generated `pear://...` link in `package.json`.
-- If updates do not trigger, verify `package.json` contains a valid `upgrade` Pear link and that peers are seeding the target drive.
+- `INVALID_URL` with an `upgrade` placeholder means the selected channel link in `package.json` has not been replaced. Run `pear touch`, then put the generated `pear://...` link in the matching channel.
+- If updates do not trigger, verify the selected channel contains a valid `upgrade` Pear link and that peers are seeding the target drive.
 - If `npm run make` fails on unsupported hosts, run a specific `make:<platform>-<arch>` script or build on a supported host.
 - This template does not implement app-level data persistence; it is a minimal CLI + updater example.
 
