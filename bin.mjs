@@ -15,16 +15,15 @@ const cmd = command(
   summary(pkg.description),
   flag('--version|-v', 'Print the current version'),
   flag('--storage <dir>', 'custom storage directory'),
-  flag('--no-updates', 'disable OTA updates for this run'),
-  ({ flags }) => {
-    if (!flags.version) return
-    console.log(`${appName} v${pkg.version}`)
-    Bare.exit()
-  }
+  flag('--no-updates', 'disable OTA updates for this run')
 )
 
-cmd.parse(Bare.argv.slice(isDev ? 2 : 1))
+cmd.parse(Bare.argv.slice(isDev ? 2 : 1), { run: false })
 if (cmd.flags.help) Bare.exit()
+if (cmd.flags.version) {
+  console.log(`${appName} v${pkg.version}`)
+  Bare.exit()
+}
 
 const updates = cmd.flags.updates
 const storage = cmd.flags.storage || (isDev ? null : path.join(persistent(), appName))
