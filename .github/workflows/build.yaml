@@ -39,45 +39,60 @@ jobs:
       - name: Build
         run: npm run make:${{ matrix.host }}
 
-      - name: Package
-        if: runner.os != 'Windows'
-        shell: bash
-        run: tar -C out/${{ matrix.host }} -czf hello-pear-bare-${{ matrix.host }}.tar.gz .
-
-      - name: Package
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Compress-Archive -Path "out/${{ matrix.host }}/*" -DestinationPath "hello-pear-bare-${{ matrix.host }}.zip"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hello-pear-bare-${{ matrix.host }}
-          path: hello-pear-bare-${{ matrix.host }}.*
+          name: ${{ matrix.host }}
+          path: out/${{ matrix.host }}/hello-pear-bare*
           if-no-files-found: error
+          retention-days: 1
 
-  release:
-    name: Release
-    if: github.ref_type == 'tag'
+  package:
+    name: Package by-arch
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
-      - name: Download artifacts
+      - name: Setup repo
+        uses: holepunchto/actions/.github/steps/setup-repo@v1
+
+      - name: Download builds
         uses: actions/download-artifact@v4
         with:
-          path: release
-          merge-multiple: true
+          path: apps
+
+      - name: Build by-arch
+        run: |
+          chmod +x apps/darwin-*/hello-pear-bare apps/linux-*/hello-pear-bare
+          npx --yes pear-build@1.1.1 \
+            --darwin-arm64-app apps/darwin-arm64/hello-pear-bare \
+            --darwin-x64-app apps/darwin-x64/hello-pear-bare \
+            --linux-arm64-app apps/linux-arm64/hello-pear-bare \
+            --linux-x64-app apps/linux-x64/hello-pear-bare \
+            --win32-x64-app apps/win32-x64/hello-pear-bare.exe \
+            --win32-arm64-app apps/win32-arm64/hello-pear-bare.exe \
+            --target deployment \
+            --package package.json
+          tar -C deployment -czf by-arch.tar.gz .
+
+      - name: Upload by-arch
+        uses: actions/upload-artifact@v4
+        with:
+          name: by-arch
+          path: by-arch.tar.gz
+          if-no-files-found: error
 
       - name: Publish release
+        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" release/* --clobber
+            gh release upload "$TAG" by-arch.tar.gz --clobber
           else
-            gh release create "$TAG" release/* --verify-tag --generate-notes
+            gh release create "$TAG" by-arch.tar.gz --verify-tag --generate-notes
           fi
