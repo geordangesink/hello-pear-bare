@@ -18,7 +18,7 @@ const cmd = command(
   flag('--no-updates', 'disable OTA updates for this run')
 )
 
-cmd.parse(Bare.argv.slice(isDev ? 2 : 1), { run: false })
+cmd.parse(Bare.argv.slice(isDev ? 2 : 1))
 if (cmd.flags.help) Bare.exit()
 if (cmd.flags.version) {
   console.log(`${appName} v${pkg.version}`)
