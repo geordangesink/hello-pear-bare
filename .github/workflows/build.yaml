@@ -1,10 +1,5 @@
 name: Build
 
-on:
-  workflow_dispatch:
-  push:
-    tags: ['v*']
-
 permissions:
   contents: read
 
@@ -83,16 +78,3 @@ jobs:
           name: by-arch
           path: by-arch.tar.gz
           if-no-files-found: error
-
-      - name: Publish release
-        if: github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" by-arch.tar.gz --clobber
-          else
-            gh release create "$TAG" by-arch.tar.gz --verify-tag --generate-notes
-          fi
